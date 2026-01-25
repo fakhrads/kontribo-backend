@@ -18,8 +18,8 @@ export function createApp() {
     .use(
       cookie({
         httpOnly: true,
-        sameSite: "lax",
-        secure: env.SESSION_COOKIE_SECURE,
+        sameSite: env.SESSION_COOKIE_SAMESITE,
+        secure: env.SESSION_COOKIE_SAMESITE === "none" ? true : env.SESSION_COOKIE_SECURE,
         path: "/",
       })
     )

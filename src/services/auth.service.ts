@@ -32,6 +32,7 @@ async function pickAvailableUsername(email: string) {
   return `${base}_${crypto.randomUUID().slice(0, 6)}`;
 }
 
+
 export const authService = {
   async registerWithPassword(input: {
     email: string;

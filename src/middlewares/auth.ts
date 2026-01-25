@@ -23,7 +23,7 @@ export const requireAuth = new Elysia({ name: "requireAuth" })
     const session = await sessionDao.findActiveByTokenHash(tokenHash);
     if (!session) throw new AppError("UNAUTHORIZED", "Session expired", 401);
 
-    const user = await userDao.findById(session.userId);
+    const user = await userDao.findActorById(session.userId);
     if (!user) throw new AppError("UNAUTHORIZED", "User not found", 401);
 
     return { actorUserId: user.id, actor: user };

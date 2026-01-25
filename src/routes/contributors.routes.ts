@@ -105,6 +105,8 @@ export const contributorRoutes = new Elysia()
             t.Literal("DATASET"),
             t.Literal("DOCUMENTATION"),
             t.Literal("TEMPLATE"),
+            t.Literal("AVATAR"),
+            t.Literal("BANNER"),
             t.Literal("OTHER"),
           ])
         ),

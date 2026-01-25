@@ -1,8 +1,61 @@
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, contributorProfiles, authIdentities } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const userDao = {
+  async findActorById(userId: string) {
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        username: users.username,
+        displayName: users.displayName,
+        role: users.role,
+        status: users.status,
+
+        contributorId: contributorProfiles.id,
+        avatarAssetId: contributorProfiles.avatarAssetId,
+        bannerAssetId: contributorProfiles.bannerAssetId,
+        contributorDisplayName: contributorProfiles.displayName,
+        contributorUsername: contributorProfiles.username,
+      })
+      .from(users)
+      .leftJoin(contributorProfiles, eq(contributorProfiles.userId, users.id))
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const r = rows[0];
+    if (!r) return null;
+
+    const displayName =
+      (r.displayName && r.displayName.trim()) ||
+      (r.contributorDisplayName && r.contributorDisplayName.trim()) ||
+      r.username;
+
+    return {
+      id: r.id,
+      email: r.email,
+      username: r.username,
+      displayName,
+      role: r.role,
+      status: r.status,
+
+      contributorId: r.contributorId ?? null,
+      avatarAssetId: r.avatarAssetId ?? null,
+      bannerAssetId: r.bannerAssetId ?? null,
+
+      contributorProfile: r.contributorId
+        ? {
+            id: r.contributorId,
+            username: r.contributorUsername ?? null,
+            displayName: r.contributorDisplayName ?? null,
+            avatarAssetId: r.avatarAssetId ?? null,
+            bannerAssetId: r.bannerAssetId ?? null,
+          }
+        : null,
+    };
+  },
+
   async findById(id: string) {
     const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return rows[0] ?? null;
@@ -15,6 +68,20 @@ export const userDao = {
 
   async findByUsername(username: string) {
     const rows = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return rows[0] ?? null;
+  },
+
+  async updatePassword(userId: string, newPasswordHash: string) {
+    const now = new Date();
+    const rows = await db
+      .update(authIdentities)
+      .set({
+        passwordHash: newPasswordHash,
+        updatedAt: now,
+        updatedBy: userId,
+      })
+      .where(eq(authIdentities.userId, userId))
+      .returning();
     return rows[0] ?? null;
   },
 
@@ -46,13 +113,16 @@ export const userDao = {
     return rows[0]!;
   },
 
-  async updateById(id: string, patch: Partial<{
-    role: "ADMIN" | "CONTRIBUTOR";
-    status: "ACTIVE" | "SUSPENDED";
-    displayName: string;
-    isEmailVerified: boolean;
-    updatedBy: string | null;
-  }>) {
+  async updateById(
+    id: string,
+    patch: Partial<{
+      role: "ADMIN" | "CONTRIBUTOR";
+      status: "ACTIVE" | "SUSPENDED";
+      displayName: string;
+      isEmailVerified: boolean;
+      updatedBy: string | null;
+    }>
+  ) {
     const now = new Date();
     const rows = await db
       .update(users)

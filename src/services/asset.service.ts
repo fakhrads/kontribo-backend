@@ -67,6 +67,8 @@ export const assetService = {
     height?: number | null;
     durationMs?: number | null;
   }) {
+
+    
     const contributor = await contributorDao.findByUserId(actorUserId);
     if (!contributor) throw new AppError("NOT_FOUND", "Contributor profile not found", 404);
 
@@ -98,3 +100,7 @@ export const assetService = {
     return { asset, url };
   },
 };
+
+function isUuid(v: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+}

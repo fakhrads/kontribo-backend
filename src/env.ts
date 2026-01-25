@@ -11,6 +11,8 @@ export type Env = {
   SESSION_COOKIE_NAME: string;
   SESSION_TTL_DAYS: number;
   SESSION_COOKIE_SECURE: boolean;
+  SESSION_COOKIE_SAMESITE: "lax" | "strict" | "none";
+  SESSION_COOKIE_DOMAIN?: string;
 
   PASSWORD_PEPPER: string;
 
@@ -36,6 +38,12 @@ function must(k: string, v: string | undefined): string {
   return v;
 }
 
+function pickSameSite(v: string | undefined): "lax" | "strict" | "none" {
+  const s = (v ?? "lax").toLowerCase();
+  if (s === "lax" || s === "strict" || s === "none") return s;
+  return "lax";
+}
+
 export const env: Env = {
   NODE_ENV: (process.env.NODE_ENV as any) ?? "development",
   APP_URL: must("APP_URL", process.env.APP_URL),
@@ -49,6 +57,8 @@ export const env: Env = {
   SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME ?? "kontribo_session",
   SESSION_TTL_DAYS: Number(process.env.SESSION_TTL_DAYS ?? "30"),
   SESSION_COOKIE_SECURE: (process.env.SESSION_COOKIE_SECURE ?? "false") === "true",
+  SESSION_COOKIE_SAMESITE: pickSameSite(process.env.SESSION_COOKIE_SAMESITE),
+  SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN || undefined,
 
   PASSWORD_PEPPER: must("PASSWORD_PEPPER", process.env.PASSWORD_PEPPER),
 
@@ -67,5 +77,4 @@ export const env: Env = {
   GOOGLE_CLIENT_SECRET: must("GOOGLE_CLIENT_SECRET", process.env.GOOGLE_CLIENT_SECRET),
   GOOGLE_REDIRECT_URI: must("GOOGLE_REDIRECT_URI", process.env.GOOGLE_REDIRECT_URI),
   GOOGLE_OAUTH_SCOPES: process.env.GOOGLE_OAUTH_SCOPES ?? "openid email profile",
-  
 };

@@ -7,6 +7,7 @@ export const assetRoutes = new Elysia({ prefix: "/assets" })
   .post(
     "/init",
     async ({ actorUserId, body }) => {
+      console.log("contextId raw:", body.contextId, typeof body.contextId);
       const res = await assetService.initUpload(actorUserId, body);
       return { ok: true, ...res };
     },
@@ -30,6 +31,15 @@ export const assetRoutes = new Elysia({ prefix: "/assets" })
   .post(
     "/complete",
     async ({ actorUserId, body }) => {
+      const { assetId } = body;
+
+      if (!assetId || typeof assetId !== "string") {
+        return { ok: false, message: "assetId is required" };
+      }
+      if (!isUuid(assetId)) {
+        return { ok: false, message: "assetId must be a valid UUID" };
+      }
+
       const asset = await assetService.completeUpload(actorUserId, body);
       return { ok: true, asset };
     },
@@ -51,3 +61,7 @@ export const assetRoutes = new Elysia({ prefix: "/assets" })
     },
     { params: t.Object({ id: t.String() }) }
   );
+
+function isUuid(v: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+}
